@@ -1,0 +1,318 @@
+.frontpage {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.nav {
+  width: 100%;
+  height: 80px;
+}
+.nav .right {
+  width: 80%;
+  height: 100%;
+  float: right;
+  position: relative;
+}
+.nav .left {
+  width: 20%;
+  height: 100%;
+  float: left;
+}
+.right button {
+  float: right;
+  width: 80px;
+  height: 80px;
+  font-size: 25px;
+  margin-left: 20px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.card {
+  width: 200px;
+  height: 250px;
+  border: 1px solid black;
+  right: 10px;
+  top: 80px;
+  position: absolute;
+  text-align: center;
+}
+.main {
+  width: 100%;
+  height: calc(100vh - 80px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+/* chat */
+.main .right {
+  width: 40%;
+  height: 100%;
+  float: right;
+  border: 1px solid black;
+}
+/* post */
+.main .left {
+  width: 60%;
+  height: 100%;
+  float: left;
+  display: flex;
+  justify-content: flex-end;
+  padding: 30px;
+}
+
+.post {
+  width: 100%;
+  height: 700px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.posts {
+  width: 500px;
+  height: 600px;
+  border: 1px solid black;
+  overflow: scroll;
+}
+.posts::-webkit-scrollbar {
+  width: 0%;
+}
+/* item */
+
+.item {
+  width: 100%;
+  height: 100%;
+}
+.item .top {
+  width: 100%;
+  height: 10%;
+  display: flex;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.top .img {
+  width: 50px;
+  height: 50px;
+  margin: 5px 15px;
+  border: 1px solid black;
+  border-radius: 100%;
+}
+.top h5 {
+  font-size: 15px;
+}
+.item .middle {
+  width: 100%;
+  height: 75%;
+}
+.item .bottom {
+  width: 100%;
+  height: 15%;
+  border: 1px solid black;
+}
+
+.item .bottom button {
+  width: 50px;
+  height: 50px;
+  font-size: 25px;
+  margin: 10px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+/* chats */
+
+.chat {
+  width: 100%;
+  height: 100%;
+}
+.chat .top {
+  width: 100%;
+  height: 100px;
+  box-sizing: border-box;
+  padding: 10px;
+  display: flex;
+  gap: 20px;
+  overflow-x: scroll;
+}
+.chat .top::-webkit-scrollbar {
+  width: 0%;
+}
+.user {
+  width: 60px;
+  height: 60px;
+  border-radius: 100%;
+  border: 1px solid black;
+  flex-wrap: nowrap;
+  cursor: pointer;
+  overflow: hidden;
+
+}
+
+.user img{
+    width:100%;
+    height: 100%;
+
+}
+.chat .bottom {
+  width: 100%;
+  height: calc(100vh - 100px);
+}
+.chat .bottom .messages {
+  width: 100%;
+  height: 80%;
+  overflow-y: scroll;
+
+}
+.messages::-webkit-scrollbar{
+    width : 1px ;
+}
+.chat .bottom .inputs {
+  width: 100%;
+  height: 20%;
+  display: flex;
+}
+.inputs input {
+  width: 80%;
+  height: 60px;
+  border: 1px solid black;
+  font-size: 25px;
+}
+.inputs button {
+  width: 20%;
+  height: 50px;
+  background-color: aliceblue;
+  border: 1px solid black;
+  margin: 5px;
+}
+/* card */
+.cards {
+  width: 300px;
+  height: 300px;
+  position: absolute;
+  top: 80px;
+  border: 1px solid black;
+  background-color: white ;
+  right: 20px;
+}
+
+/* mmesaages  */
+
+.message1 {
+    margin-top: 10px;
+    width: 100%;
+    float: right;
+    font-size: 17px;
+  }
+  /* my message feild */
+  .message1 .m1 {
+    float: right;
+    display: flex;
+    overflow: hidden;
+    word-break: break-all;
+  }
+  .m1 img {
+    float: right;
+    width: 50px;
+    height: 50px;
+    margin: 10px;
+    border-radius: 100%;
+    margin-top: 50px;
+  }
+  
+  .m1 p {
+    width: 400px;
+    box-sizing: border-box;
+    background-color: #f1f1fc;
+    padding: 30px;
+    border-radius: 10px;
+  }
+  /* other message feild */
+  .message2 {
+    margin-top: 10px;
+    width: 100%;
+    float: left;
+    font-size: 22px;
+    color: white;
+  }
+  .message2 .m2 {
+    float: left;
+    display: flex;
+    overflow: hidden;
+    word-break: break-all;
+  }
+  .m2 img {
+    float: left;
+    width: 50px;
+    height: 50px;
+    margin: 10px;
+    border-radius: 100%;
+    margin-top: 50px;
+}
+.m2 p {
+    width: 400px;
+    box-sizing: border-box;
+    background-color: #999ad7;
+    padding: 30px;
+    border-radius: 10px;
+}
+.comments{
+  width: 300px;
+  height: 200px;
+  position: absolute;
+  background-color: white;
+  bottom: 50px;
+  right: 20px;
+  overflow: hidden;
+  border: 1px solid black;
+}
+
+.comments ul{
+  width: 100%;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+}
+ul::-webkit-scrollbar{
+  width: 0%;
+}
+.add-comment{
+  width: 100%;
+  height: 50px;
+  justify-content: space-around;
+}
+.add-comment input{
+  width: 200px;
+  outline: none;
+  height: 20px;
+}
+.add-comment button{
+  border: 1px solid black;
+}
+/* /notify */
+.notify{
+  width: 500px;
+  height: 600px;
+  position: absolute;
+  background-color: pink;
+}
+.list{
+  width: 100%;
+  height: 50px;
+  display: flex ;
+  font-size: 20px;
+  margin: 10px 20px;
+}
+.list img{
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  margin-top: 10px;
+}
+.list h5{
+  font-size: 15px;
+  padding-left: 20px;
+}
