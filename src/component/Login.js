@@ -74,10 +74,10 @@ const LoginPage = () => {
 
   return (
     <>
-      {user && <FrontPage />}
-      <button className="gbutton" onClick={googleSignIn}>
+      {user ? <FrontPage /> : <button className="gbutton" onClick={googleSignIn}>
         Google Signin
-      </button>
+      </button>}
+     
     </>
   );
 };

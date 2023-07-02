@@ -8,16 +8,19 @@ import {
   getDoc,
   setDoc,
   getDocs,
-  query,where
+  query,
+  where,
+  onSnapshot,
+  orderBy,
 } from "firebase/firestore";
 import { app } from "../../../firebaseconfig";
-import { useSelector } from "react-redux";
 import { getAuth } from "firebase/auth";
 
 const Item = ({ url, metadata, isNew }) => {
   const db = getFirestore(app);
   const [color, setColor] = useState("");
   const [comments, setComments] = useState([]);
+  const [user, setUser] = useState();
   const [commentInput, setCommentInput] = useState("");
   const [likes, setLikes] = useState(0);
   const [toggle, setToggle] = useState(false);
@@ -33,80 +36,156 @@ const Item = ({ url, metadata, isNew }) => {
     }
   }, [isNew]);
 
-  const auth=getAuth(app);
+  const auth = getAuth(app);
   useEffect(() => {
-    // Retrieve the likes count from the metadata
-    const likesCount = metadata?.customMetadata?.likes || 0;
-    setLikes(likesCount);
+    const docRef = doc(db, metadata.fullPath);
 
+    // Retrieve the likes count from the metadata
+    const fetchLikesCount = async () => {
+      const docSnap = await getDoc(docRef);
+  
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const likesCount = data.likes || 0;
+        setLikes(likesCount);
+      }
+    };
+    
     // Retrieve the comments array from the metadata
-    const commentsArray = metadata?.customMetadata?.comments || [];
-    setComments(commentsArray);
-  }, [metadata]);
+
+    const fetchComments = async () => {
+      const docSnap = await getDoc(docRef);
+  
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const commentsArray = data.comments || [];
+        setComments(commentsArray);
+      }
+    };
+  fetchLikesCount()
+    fetchComments();
+  }, [db, metadata.fullPath]);
+
+  const q = query(collection(db, "User"), orderBy("createdAt", "asc"));
+  useEffect(() => {
+    const sub = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const filteredData = data.filter(
+        (item) => item.uid === auth.currentUser.uid
+      );
+      setUser(filteredData);
+    });
+    return () => {
+      sub();
+    };
+  }, [db, auth]);
+
 
   const handleLike = async () => {
     const docRef = doc(db, metadata.fullPath);
-
+  
     // Check if the document exists
     const docSnap = await getDoc(docRef);
+  
     if (docSnap.exists()) {
-      // Document exists, proceed with the update
-      const newLikesCount = color ? likes - 1 : likes + 1;
-      setLikes(newLikesCount);
-      setColor(color ? "" : "red");
-
-      // Update the likes count in Firestore
+      // Document exists, retrieve the current likes count
+      const currentLikesCount = docSnap.data().likes || 0;
+      let newLikesCount;
+      let newColor;
+  
+      if (color === "red") {
+        // If already liked, decrease the like count and remove the like
+        newLikesCount = currentLikesCount - 1;
+        newColor = "";
+      } else {
+        // If not liked, increase the like count and set the like
+        newLikesCount = currentLikesCount + 1;
+        newColor = "red";
+      }
+  
+      // Update the likes count and color in Firestore
       await updateDoc(docRef, {
-        customMetadata: {
-          ...metadata.customMetadata,
-          likes: newLikesCount,
-        },
+        likes: newLikesCount,
       });
-
+  
       // Add notification to the user who posted the photo
-      const q1 = query(collection(db, "User"), where("uid", "==",  metadata?.customMetadata?.sId));
+      const q1 = query(
+        collection(db, "User"),
+        where("uid", "==", metadata?.customMetadata?.sId)
+      );
       const querysnap = await getDocs(q1);
       let docId = "";
       querysnap.forEach((doc) => (docId = doc.id));
-
+  
       const userRef = doc(db, "User", docId);
       await updateDoc(userRef, {
         notifications: arrayUnion({
           type: "like",
-          senderUID: auth.currentUser.uid, // Replace with the actual sender's UID
+          senderUID: auth.currentUser.uid,
           photoURL: auth.currentUser.photoURL,
-          name: auth.currentUser.displayName,
+          name: user[0].name,
+          post: url,
         }),
       });
-    } else {
-      // Document does not exist, create the document and set the likes count
-      const newLikesCount = color ? likes - 1 : likes + 1;
+  
+      // Update the local state with the new likes count and color
       setLikes(newLikesCount);
-      setColor(color ? "" : "red");
-
-      // Create the document with the likes count
+      setColor(newColor);
+    } else {
+      // Document does not exist, create the document with initial likes count of 1
       await setDoc(docRef, {
-        customMetadata: {
-          likes: newLikesCount,
-        },
+        likes: 1,
       });
+  
+      // Update the local state with the new likes count and color
+      setLikes(1);
+      setColor("red");
     }
   };
-
-  const handleComment = () => {
-    // Add the new comment to the comments array
-    const newCommentsArray = [...comments, commentInput];
-    setComments(newCommentsArray);
-    setCommentInput("");
-
-    // Update the comments array in Firestore
-    updateDoc(doc(db, "images", metadata.fullPath), {
-      customMetadata: {
-        comments: arrayUnion(commentInput),
-      },
-    });
+  
+  
+  const handleComment = async () => {
+    const docRef = doc(db, metadata.fullPath);
+    const docSnap = await getDoc(docRef);
+  
+    if (docSnap.exists()) {
+      // Document exists, proceed with the update
+      const newComment = commentInput + " By " + user[0].name;
+      const updatedCommentsArray = [...comments, newComment];
+  
+      // Update the comments array in Firestore
+      await updateDoc(docRef, {
+        comments: updatedCommentsArray,
+      });
+  
+      // Clear the comment input field
+      setCommentInput("");
+  
+      // Add notification for the comment to the user who posted the photo
+      const q1 = query(
+        collection(db, "User"),
+        where("uid", "==", metadata?.customMetadata?.sId)
+      );
+      const querysnap = await getDocs(q1);
+      let docId = "";
+      querysnap.forEach((doc) => (docId = doc.id));
+  
+      const userRef = doc(db, "User", docId);
+      await updateDoc(userRef, {
+        notifications: arrayUnion({
+          type: "Comment",
+          senderUID: auth.currentUser.uid,
+          photoURL: auth.currentUser.photoURL,
+          name: user[0].name,
+          post: url,
+        }),
+      });
+  
+      // Update the local state with the updated comments array
+      setComments(updatedCommentsArray);
+    }
   };
-
+  
   return (
     <div className="item">
       <div className="top">
@@ -143,7 +222,7 @@ const Item = ({ url, metadata, isNew }) => {
       </div>
       <div className="bottom" style={{ position: "relative" }}>
         <button onClick={handleLike}>
-          <i className="fa-regular fa-heart" style={{ color: color }}></i>
+        <i class="fa-solid fa-heart" style={{ color: color }}><pan style={{fontSize:"15px",paddingLeft:"10px"}}>{likes}</pan></i>
         </button>
         <button>
           <i

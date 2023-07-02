@@ -1,14 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  getFirestore,
-  getDocs,
-} from "firebase/firestore";
+import bg1 from "../../../assets/images/bg.jpg"
 import Item from "../Post/Item";
 import { app } from "../../../firebaseconfig";
-import { useSelector } from "react-redux";
+import { useSelector, useStore } from "react-redux";
 import { storage } from "../../../firebaseconfig";
 import {
   ref,
@@ -18,14 +12,40 @@ import {
   getMetadata,
 } from "firebase/storage";
 import { v4 } from "uuid";
+import {
+  collection,
+  getFirestore,
+  onSnapshot,
+  orderBy,
+  query,
+} from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 const Post = () => {
   const [items, setItems] = useState([]);
   const [file, setFile] = useState(null);
-  const [trigger, setTrigger] = useState(false); 
-  const [isToggle, setIsToggle] = useState(false); 
-
+  const [trigger, setTrigger] = useState(false);
+  const [isToggle, setIsToggle] = useState(false);
+  const [users, setUser] = useState();
   const imageListRef = ref(storage, "images/");
   const user = useSelector((state) => state.userData.user);
+  const [add, setAdd] = useState("");
+  const bg =
+    "'https://dataquality.pl/wp-content/uploads/2019/06/Button-choose-file.png'";
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const q = query(collection(db, "User"), orderBy("createdAt", "asc"));
+  useEffect(() => {
+    const sub = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const filteredData = data.filter(
+        (item) => item.uid === auth.currentUser.uid
+      );
+      setUser(filteredData);
+    });
+    return () => {
+      sub();
+    };
+  }, [db, auth]);
 
   useEffect(() => {
     listAll(imageListRef)
@@ -56,7 +76,6 @@ const Post = () => {
       });
   }, [trigger]);
 
-  console.log(items);
   const handleAddItem = async () => {
     try {
       if (!file) return;
@@ -67,25 +86,29 @@ const Post = () => {
       if (file.type.includes("image")) {
         uploadBytes(fileRef, file, {
           customMetadata: {
-            addedBy: user.displayName,
+            addedBy: users[0].name,
             sId: user.uid,
             photo: user.photoURL,
             sec: 5,
           },
         }).then(() => {
-          setTrigger((prev) => !prev); // Toggle trigger value to fetch updated data
+          setTrigger((prev) => !prev);
+          setAdd("Image Posted Successfully..");
+          // Toggle trigger value to fetch updated data
         });
       }
       // Check if the file is a video
       else if (file.type.includes("video")) {
         uploadBytes(fileRef, file, {
           customMetadata: {
-            addedBy: user.displayName,
+            addedBy: users[0].name,
             sId: user.uid,
             photo: user.photoURL,
           },
         }).then(() => {
-          setTrigger((prev) => !prev); // Toggle trigger value to fetch updated data
+          setTrigger((prev) => !prev);
+          setAdd("Video Posted Successfully..");
+          // Toggle trigger value to fetch updated data
         });
       }
     } catch (error) {
@@ -93,54 +116,109 @@ const Post = () => {
     }
   };
 
-  console.log(items.name);
   return (
     <div className="post" style={{ position: "relative" }}>
       <div className="posts">
-        {items.map((item) => (
-          <Item
-            key={item.id}
-            url={item.url}
-            metadata={item.metadata}
-            isNew={item.isNew} // Pass the isNew property to Item component
-          />
-        ))}
+        {items.length === 0 ? (
+          <div className="no-posts">
+            <img src={bg1} alt="Big Image" width="100%" height="100%" />
+            <h1 style={{ margin: "-50px 0 0 220px" }}>
+              Add <span style={{color:"#5e5eb9"}}>Post</span>
+            </h1>
+          </div>
+        ) : (
+          items.map((item) => (
+            <Item
+              key={item.id}
+              url={item.url}
+              metadata={item.metadata}
+              isNew={item.isNew} // Pass the isNew property to Item component
+            />
+          ))
+        )}
       </div>
       <button
         style={{
           width: "50px",
-          fontSize: "20px",
+          fontSize: "30px",
           borderRadius: "100%",
           height: "50px",
           border: "1px solid black",
           position: "absolute",
           cursor: "pointer",
-          bottom:"20px"
+          bottom: "20px",
+          color: "white",
+          backgroundColor: "#5e5eb9",
         }}
         onClick={() => {
           isToggle ? setIsToggle(false) : setIsToggle(true);
+          setAdd("")
         }}
       >
         +
       </button>
       {isToggle && (
-        <div  style={{
-              width: "300px",
-              fontSize: "20px",
-              height: "100px",
+        <div
+          style={{
+            width: "300px",
+            fontSize: "20px",
+            height: "150px",
+            border: "1px solid black",
+            position: "absolute",
+            cursor: "pointer",
+            bottom: "0",
+            marginBottom: "100px",
+            boxSizing: "border-box",
+            paddingTop: "20px",
+            backgroundColor: "white",
+          }}
+        >
+          <div
+            style={{
+              backgroundImage: `url(${bg})`,
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "cover",
+              width: "90%",
+              height: "60px",
               border: "1px solid black",
-              position: "absolute",
-              cursor: "pointer",
-              marginTop:"200px",
-              backgroundColor:"white"
-            }}>
-          <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-          <button
-           
-            onClick={handleAddItem}
+              borderRadius: "20px",
+              marginLeft: "10px",
+            }}
           >
-            <h1 style={{ marginTop: "-1px" ,fontSize:"20px"}}>upload</h1>
+            <input
+              type="file"
+              onChange={(e) => {
+                setFile(e.target.files[0]);
+                setAdd("");
+              }}
+              style={{
+                width: "100%",
+                height: "100%",
+                opacity: "0",
+                cursor: "pointer",
+              }}
+            />
+          </div>
+          <button
+            onClick={handleAddItem}
+            style={{
+              width: "100%",
+              border: "none",
+              backgroundColor: "transparent",
+              cursor: "pointer",
+            }}
+          >
+            <h1 style={{ fontSize: "20px" }}>upload</h1>
           </button>
+          <p
+            style={{
+              color: "green",
+              margin: "-10px 0 0 50px",
+              fontSize: "15px",
+            }}
+          >
+            {add}
+          </p>
         </div>
       )}
     </div>

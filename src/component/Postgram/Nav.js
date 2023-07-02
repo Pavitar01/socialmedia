@@ -8,10 +8,10 @@ const Nav = ({isChat,setIsChat}) => {
   return (
     <div className="nav">
       <div className="left">
-        <h1 style={{textAlign:"center"}}>Postgram</h1>
+        <h1 style={{textAlign:"center",color:"white"}}>Postgram</h1>
       </div>
       <div className="right">
-        <button onClick={()=>toggle ? setToggle(false):setToggle(true)}>👤</button>
+        <button onClick={()=>toggle ? setToggle(false):setToggle(true)} style={{color:"white"}}><i class="fa-solid fa-user"></i></button>
         <button onClick={()=>{isChat ? setIsChat(false):setIsChat(true)}}>🗨️</button>
         <button onClick={()=>{isNotify?setNotify(false):setNotify(true)}}>🔔</button>
         {

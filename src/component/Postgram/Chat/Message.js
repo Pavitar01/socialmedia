@@ -10,8 +10,8 @@ const Message = ({ message, url, user = "other", time }) => {
     if(diff==0){
       return "Today";
     }
-    else if (day===1){
-      return 'Tommorrow'
+    else if (day===-1){
+      return 'Yesterday'
     }
     else {
       return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
